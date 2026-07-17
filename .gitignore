@@ -1,0 +1,11 @@
+# 部署相关
+启动服务器.bat
+README.md
+config.json
+commands.json
+*.rar
+
+# Cloudflare
+.wrangler/
+node_modules/
+dist/

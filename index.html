@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智慧农业数字孪生 - 番茄全流程自动授粉</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+  <!-- 顶部标题栏 -->
+  <div id="top-bar">
+    <div class="top-left">
+      <span class="logo">🍅</span>
+      <span class="title">智慧农业数字孪生平台</span>
+      <span class="subtitle">番茄全流程自动授粉</span>
+    </div>
+    <div class="top-right">
+      <span class="status-dot online" id="status-dot"></span>
+      <span id="status-text">系统运行中</span>
+      <span id="clock"></span>
+    </div>
+  </div>
+
+  <!-- 左侧传感器面板 -->
+  <div id="sensor-panel" class="panel">
+    <div class="panel-title">📊 环境传感器</div>
+    <div class="panel-body">
+      <div class="sensor-card" id="sensor-temp">
+        <div class="sensor-icon">🌡️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">温度 TEMP</span>
+          <span class="sensor-value" id="val-temp">--°C</span>
+          <div class="sensor-bar"><div class="sensor-fill temp-fill" id="bar-temp"></div></div>
+        </div>
+      </div>
+      <div class="sensor-card" id="sensor-humidity">
+        <div class="sensor-icon">💧</div>
+        <div class="sensor-info">
+          <span class="sensor-label">湿度 HUM</span>
+          <span class="sensor-value" id="val-humidity">--%</span>
+          <div class="sensor-bar"><div class="sensor-fill humidity-fill" id="bar-humidity"></div></div>
+        </div>
+      </div>
+      <div class="sensor-card" id="sensor-light">
+        <div class="sensor-icon">☀️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">光照 LUX</span>
+          <span class="sensor-value" id="val-light">-- lux</span>
+          <div class="sensor-bar"><div class="sensor-fill light-fill" id="bar-light"></div></div>
+        </div>
+      </div>
+      <div class="sensor-card" id="sensor-co2">
+        <div class="sensor-icon">🫧</div>
+        <div class="sensor-info">
+          <span class="sensor-label">CO₂ PPM</span>
+          <span class="sensor-value" id="val-co2">-- ppm</span>
+          <div class="sensor-bar"><div class="sensor-fill co2-fill" id="bar-co2"></div></div>
+        </div>
+      </div>
+      <div class="sensor-card" id="sensor-ph">
+        <div class="sensor-icon">🧪</div>
+        <div class="sensor-info">
+          <span class="sensor-label">pH 值</span>
+          <span class="sensor-value" id="val-ph">--</span>
+          <div class="sensor-bar"><div class="sensor-fill ph-fill" id="bar-ph"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧控制面板 -->
+  <div id="control-panel" class="panel">
+    <div class="panel-title">🎮 设备控制</div>
+    <div class="panel-body">
+
+      <div class="control-section" id="ctrl-rail">
+        <span class="ctrl-label">🚂 滑轨位置</span>
+        <input type="range" id="rail-slider" min="0" max="100" value="0" class="ctrl-slider">
+        <div class="ctrl-buttons">
+          <button id="btn-rail-home" class="ctrl-btn">归位</button>
+          <button id="btn-rail-auto" class="ctrl-btn">自动巡检</button>
+        </div>
+      </div>
+
+      <div class="control-section" id="ctrl-pollinator">
+        <span class="ctrl-label">🌼 震荡授粉头</span>
+        <div class="ctrl-buttons">
+          <button id="btn-vibrate-on" class="ctrl-btn active-btn">启动震荡</button>
+          <button id="btn-vibrate-off" class="ctrl-btn">停止</button>
+        </div>
+        <div class="ctrl-intensity">
+          <span>强度</span>
+          <input type="range" id="intensity-slider" min="1" max="10" value="5" class="ctrl-slider">
+          <span id="val-intensity">5</span>
+        </div>
+      </div>
+
+      <div class="control-section" id="ctrl-lights">
+        <span class="ctrl-label">💡 补光灯</span>
+        <div class="ctrl-buttons">
+          <button id="btn-light-on" class="ctrl-btn active-btn">开启</button>
+          <button id="btn-light-off" class="ctrl-btn">关闭</button>
+        </div>
+      </div>
+
+      <div class="control-section" id="ctrl-fans">
+        <span class="ctrl-label">🌀 环流风扇</span>
+        <div class="ctrl-buttons">
+          <button id="btn-fan-on" class="ctrl-btn active-btn">开启</button>
+          <button id="btn-fan-off" class="ctrl-btn">关闭</button>
+        </div>
+      </div>
+
+      <div class="control-section" id="ctrl-selected">
+        <span class="ctrl-label">📍 当前选中</span>
+        <span id="selected-name" class="selected-item">无</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部面板：摄像头 + AI -->
+  <div id="bottom-panel">
+    <div class="bottom-section camera-section">
+      <h3>📷 实时摄像头</h3>
+      <div class="camera-placeholder" id="camera-view">
+        <div class="camera-overlay">
+          <span class="camera-icon">📷</span>
+          <span>等待摄像头接入...</span>
+          <span class="camera-hint">此处将显示实时视频流</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-section ai-section">
+      <h3>🤖 AI 检测</h3>
+      <div class="ai-status" id="ai-detection">
+        <span class="ai-label">授粉期检测</span>
+        <span class="ai-result" id="ai-pollination">--</span>
+        <span class="ai-confidence" id="ai-pollination-conf"></span>
+      </div>
+      <div class="ai-status" id="ai-growth">
+        <span class="ai-label">生长状态</span>
+        <span class="ai-result" id="ai-growth-stage">--</span>
+        <span class="ai-confidence" id="ai-growth-conf"></span>
+      </div>
+      <div class="ai-status" id="ai-predict">
+        <span class="ai-label">长势预测</span>
+        <span class="ai-result" id="ai-predict-result">--</span>
+      </div>
+      <div class="ai-status-indicator" id="ai-indicator">
+        <span class="status-dot offline"></span>
+        <span>AI 模型待加载</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js 画布 -->
+  <div id="canvas-container"></div>
+
+  <!-- 3D 工具提示 -->
+  <div id="tooltip" class="hidden">
+    <span id="tooltip-text"></span>
+  </div>
+
+  <!-- Three.js importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/controls/OrbitControls.js",
+      "three/addons/loaders/FBXLoader.js": "./vendor/loaders/FBXLoader.js",
+      "three/addons/libs/fflate.module.js": "./vendor/libs/fflate.module.js"
+    }
+  }
+  </script>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
