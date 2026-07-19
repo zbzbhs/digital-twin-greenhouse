@@ -5,6 +5,7 @@
 
 import { sensorSimulator } from '../data/simulator.js';
 import { nleAdapter } from '../data/nle_adapter.js';
+import * as THREE from 'three';
 
 export class Dashboard {
   constructor(railPollinator) {
