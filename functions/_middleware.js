@@ -97,9 +97,30 @@ async function checkKillSwitch(env) {
  */
 export async function onRequest(context) {
   const { request, env } = context;
+  const url = new URL(request.url);
+
+  // NLEcloud 代理：/api/nle/* → http://api.nlecloud.com/*
+  if (url.pathname.startsWith('/api/nle/')) {
+    const targetPath = url.pathname.replace('/api/nle', '') + url.search;
+    const targetUrl = 'http://api.nlecloud.com' + targetPath;
+    const headers = new Headers(request.headers);
+    headers.set('Host', 'api.nlecloud.com');
+
+    const proxyResp = await fetch(targetUrl, {
+      method: request.method,
+      headers: headers,
+      body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.arrayBuffer() : undefined,
+    });
+
+    const corsHeaders = new Headers(proxyResp.headers);
+    corsHeaders.set('Access-Control-Allow-Origin', '*');
+    return new Response(proxyResp.body, {
+      status: proxyResp.status,
+      headers: corsHeaders,
+    });
+  }
 
   // 跳过健康检查
-  const url = new URL(request.url);
   if (url.pathname === '/health' || url.pathname === '/favicon.ico') {
     return context.next();
   }

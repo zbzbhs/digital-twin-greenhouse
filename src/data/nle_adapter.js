@@ -6,7 +6,9 @@
  * 设备: 1501019 中心网关
  */
 
-const NLE_API = 'http://localhost:8081';  // 本地代理（绕过 CORS）
+// 自动检测环境：线上用同域代理，本地用 CORS 代理
+const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const NLE_API = isLocal ? 'http://localhost:8081' : '/api/nle';
 
 // ApiTag 映射
 const TAG = {
