@@ -16,6 +16,9 @@
       <span class="subtitle">番茄全流程自动授粉</span>
     </div>
     <div class="top-right">
+      <span class="stat-item">FPS <b id="fps">60</b></span>
+      <span class="stat-item">设备 <b id="dev-online">8</b></span>
+      <span class="stat-item" style="color:var(--accent-red)">告警 <b id="alert-count">0</b></span>
       <span class="status-dot online" id="status-dot"></span>
       <span id="status-text">系统运行中</span>
       <span id="clock"></span>
@@ -24,7 +27,7 @@
 
   <!-- 左侧传感器面板 -->
   <div id="sensor-panel" class="panel">
-    <div class="panel-title">📊 环境传感器</div>
+    <div class="panel-title">📊 环境监测</div>
     <div class="panel-body">
       <div class="sensor-card" id="sensor-temp">
         <div class="sensor-icon">🌡️</div>
@@ -67,13 +70,18 @@
         </div>
       </div>
     </div>
+    <div class="panel-title" style="margin-top:0">🤖 AI 分析</div>
+    <div class="panel-body" id="ai-analysis">
+      <div class="ai-row"><span>授粉期</span><span id="ai-pollination">--</span></div>
+      <div class="ai-row"><span>生长状态</span><span id="ai-growth-stage">--</span></div>
+      <div class="ai-row"><span>长势预测</span><span id="ai-predict-result">--</span></div>
+    </div>
   </div>
 
   <!-- 右侧控制面板 -->
   <div id="control-panel" class="panel">
     <div class="panel-title">🎮 设备控制</div>
     <div class="panel-body">
-
       <div class="control-section" id="ctrl-rail">
         <span class="ctrl-label">🚂 滑轨位置</span>
         <input type="range" id="rail-slider" min="0" max="100" value="0" class="ctrl-slider">
@@ -82,7 +90,6 @@
           <button id="btn-rail-auto" class="ctrl-btn">自动巡检</button>
         </div>
       </div>
-
       <div class="control-section" id="ctrl-pollinator">
         <span class="ctrl-label">🌼 震荡授粉头</span>
         <div class="ctrl-buttons">
@@ -95,7 +102,6 @@
           <span id="val-intensity">5</span>
         </div>
       </div>
-
       <div class="control-section" id="ctrl-lights">
         <span class="ctrl-label">💡 补光灯</span>
         <div class="ctrl-buttons">
@@ -103,7 +109,6 @@
           <button id="btn-light-off" class="ctrl-btn">关闭</button>
         </div>
       </div>
-
       <div class="control-section" id="ctrl-fans">
         <span class="ctrl-label">🌀 环流风扇</span>
         <div class="ctrl-buttons">
@@ -111,47 +116,29 @@
           <button id="btn-fan-off" class="ctrl-btn">关闭</button>
         </div>
       </div>
-
       <div class="control-section" id="ctrl-selected">
         <span class="ctrl-label">📍 当前选中</span>
         <span id="selected-name" class="selected-item">无</span>
       </div>
-    </div>
-  </div>
-
-  <!-- 底部面板：摄像头 + AI -->
-  <div id="bottom-panel">
-    <div class="bottom-section camera-section">
-      <h3>📷 实时摄像头</h3>
-      <div class="camera-placeholder" id="camera-view">
-        <div class="camera-overlay">
-          <span class="camera-icon">📷</span>
-          <span>等待摄像头接入...</span>
-          <span class="camera-hint">此处将显示实时视频流</span>
+      <div class="control-section" id="ctrl-car">
+        <span class="ctrl-label">🚗 巡线小车</span>
+        <div class="ctrl-buttons">
+          <button id="btn-car-fwd" class="ctrl-btn">▶ 前进</button>
+          <button id="btn-car-stop" class="ctrl-btn">⏹ 停止</button>
+        </div>
+        <div class="ctrl-buttons" style="margin-top:4px">
+          <button id="btn-car-back" class="ctrl-btn">◀ 后退</button>
         </div>
       </div>
     </div>
-    <div class="bottom-section ai-section">
-      <h3>🤖 AI 检测</h3>
-      <div class="ai-status" id="ai-detection">
-        <span class="ai-label">授粉期检测</span>
-        <span class="ai-result" id="ai-pollination">--</span>
-        <span class="ai-confidence" id="ai-pollination-conf"></span>
-      </div>
-      <div class="ai-status" id="ai-growth">
-        <span class="ai-label">生长状态</span>
-        <span class="ai-result" id="ai-growth-stage">--</span>
-        <span class="ai-confidence" id="ai-growth-conf"></span>
-      </div>
-      <div class="ai-status" id="ai-predict">
-        <span class="ai-label">长势预测</span>
-        <span class="ai-result" id="ai-predict-result">--</span>
-      </div>
-      <div class="ai-status-indicator" id="ai-indicator">
-        <span class="status-dot offline"></span>
-        <span>AI 模型待加载</span>
-      </div>
-    </div>
+  </div>
+
+  <!-- 底部面板：4 个趋势图 -->
+  <div id="bottom-panel">
+    <div class="chart-box"><div class="cht"><i style="color:#ff8855">●</i> 温度·湿度 24h <i style="color:#44aaff">●</i></div><canvas id="chart-temp-hum"></canvas></div>
+    <div class="chart-box"><div class="cht"><i style="color:#66ddaa">●</i> CO₂·光照 24h <i style="color:#ffdd44">●</i></div><canvas id="chart-co2-lux"></canvas></div>
+    <div class="chart-box"><div class="cht">pH 值 24h</div><canvas id="chart-ph"></canvas></div>
+    <div class="chart-box" id="alerts-box"><div class="cht">⚠️ 实时告警</div><div id="alert-list"></div></div>
   </div>
 
   <!-- Three.js 画布 -->
@@ -161,6 +148,9 @@
   <div id="tooltip" class="hidden">
     <span id="tooltip-text"></span>
   </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <!-- Three.js importmap -->
   <script type="importmap">

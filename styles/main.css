@@ -463,6 +463,49 @@ body {
 }
 #tooltip.hidden { opacity: 0; }
 
+/* ===== 顶部状态项 ===== */
+.stat-item { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+.stat-item b { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+
+/* ===== AI 分析行 ===== */
+.ai-row {
+  display: flex; justify-content: space-between; padding: 4px 6px;
+  font-size: 11px; border-left: 2px solid var(--accent-cyan);
+  background: var(--bg-card); margin-bottom: 3px;
+}
+.ai-row span:first-child { color: var(--text-muted); }
+.ai-row span:last-child { font-weight: 600; color: var(--text-primary); }
+
+/* ===== 底部图表面板 ===== */
+#bottom-panel {
+  position: fixed; bottom: 12px; left: 14px; right: 14px; height: 180px;
+  display: flex; gap: 8px; z-index: 90;
+}
+.chart-box {
+  flex: 1; background: var(--bg-panel); border: 1px solid var(--border-panel);
+  position: relative; padding: 6px 8px; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: var(--glow);
+}
+.chart-box .cht {
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  margin-bottom: 2px; display: flex; justify-content: space-between;
+  letter-spacing: 1px;
+}
+.chart-box canvas { flex: 1; max-height: calc(100% - 18px); }
+
+/* ===== 告警列表 ===== */
+#alert-list {
+  flex: 1; overflow-y: auto; font-size: 10px; display: flex;
+  flex-direction: column; gap: 2px;
+}
+.alert-item {
+  padding: 3px 6px; border-left: 2px solid var(--accent-red);
+  background: rgba(255,60,60,0.08); color: var(--text-mid);
+  animation: alertIn 0.3s ease;
+}
+@keyframes alertIn { from { opacity: 0; transform: translateX(-10px) } to { opacity: 1; transform: none } }
+.alert-item .time { color: var(--text-dim); margin-right: 6px; }
+
 /* ===== 响应式 ===== */
 @media (max-width: 1024px) {
   #sensor-panel { width: 170px; }

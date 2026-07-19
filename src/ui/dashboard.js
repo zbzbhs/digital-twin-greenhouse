@@ -4,6 +4,7 @@
  */
 
 import { sensorSimulator } from '../data/simulator.js';
+import { nleAdapter } from '../data/nle_adapter.js';
 
 export class Dashboard {
   constructor(railPollinator) {
@@ -130,13 +131,15 @@ export class Dashboard {
     const btnOn = document.getElementById('btn-light-on');
     const btnOff = document.getElementById('btn-light-off');
 
-    // 获取补光灯组
+    // 获取场景引用（通过 railPollinator）
+    const scene = this.railPollinator.scene;
+    let pointLights = [];
+
+    // 创建补光点光源
     const getLightFixtures = () => {
       const result = [];
-      this.railPollinator.scene.traverse(child => {
-        if (child.userData?.type === 'light_fixture') {
-          result.push(child);
-        }
+      scene.traverse(child => {
+        if (child.userData?.type === 'light_fixture') result.push(child);
       });
       return result;
     };
@@ -145,9 +148,31 @@ export class Dashboard {
       this.isLightOn = on;
       const fixtures = getLightFixtures();
       fixtures.forEach(f => {
-        f.material.emissiveIntensity = on ? 0.6 : 0.05;
-        f.material.emissive.set(on ? 0xffaa00 : 0x111111);
+        // 灯体颜色剧烈变化
+        f.material.color.set(on ? 0xffcc66 : 0x3a3a3a);
+        f.material.emissive.set(on ? 0xff8800 : 0x000000);
+        f.material.emissiveIntensity = on ? 2.5 : 0;
       });
+
+      // 场景环境光变化（模拟温室变亮/变暗）
+      const ambient = scene.children.find(c => c.isAmbientLight);
+      if (ambient) ambient.intensity = on ? 1.5 : 0.4;
+
+      // 创建/移除点光源
+      if (on) {
+        pointLights.forEach(l => l.removeFromParent());
+        pointLights = [];
+        fixtures.forEach(f => {
+          const light = new THREE.PointLight(0xffaa33, 8, 6, 0.5);
+          light.position.copy(f.position);
+          light.position.y += 0.3;
+          scene.add(light);
+          pointLights.push(light);
+        });
+      } else {
+        pointLights.forEach(l => l.removeFromParent());
+        pointLights = [];
+      }
     };
 
     if (btnOn) {
@@ -155,6 +180,7 @@ export class Dashboard {
         setLights(true);
         btnOn.classList.add('active-btn');
         btnOff.classList.remove('active-btn');
+        nleAdapter.lightOn();
       });
     }
 
@@ -163,6 +189,7 @@ export class Dashboard {
         setLights(false);
         btnOn.classList.remove('active-btn');
         btnOff.classList.add('active-btn');
+        nleAdapter.lightOff();
       });
     }
   }
@@ -186,6 +213,7 @@ export class Dashboard {
         setFans(true);
         btnOn.classList.add('active-btn');
         btnOff.classList.remove('active-btn');
+        nleAdapter.fanOn();
       });
     }
 
@@ -194,6 +222,7 @@ export class Dashboard {
         setFans(false);
         btnOn.classList.remove('active-btn');
         btnOff.classList.add('active-btn');
+        nleAdapter.fanOff();
       });
     }
 

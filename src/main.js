@@ -10,9 +10,11 @@ import { createTomatoPlants } from './models/tomato.js';
 import { RailPollinator } from './models/rail.js';
 import { SceneInteraction } from './controls/interaction.js';
 import { Dashboard } from './ui/dashboard.js';
+import { Charts } from './ui/charts.js';
 import { AdminPanel } from './ui/admin_panel.js';
 import { sensorSimulator } from './data/simulator.js';
 import { remoteConfig } from './data/remote_config.js';
+import { nleAdapter } from './data/nle_adapter.js';
 
 // ========== 场景初始化 ==========
 
@@ -123,6 +125,7 @@ interaction.onHover = (obj) => {
 // ========== UI 仪表盘 ==========
 
 const dashboard = new Dashboard(railPollinator);
+const charts = new Charts();
 
 // ========== 双击开关设备 ==========
 
@@ -130,9 +133,8 @@ interaction.onDoubleClick = (obj) => {
   const type = obj.userData?.type;
 
   if (type === 'light_fixture') {
-    // 切换补光灯
-    const isOn = obj.material.emissiveIntensity > 0.1;
-    if (isOn) {
+    // 切换补光灯 — 用 dashboard 内部状态判断
+    if (dashboard.isLightOn) {
       document.getElementById('btn-light-off')?.click();
     } else {
       document.getElementById('btn-light-on')?.click();
@@ -203,18 +205,72 @@ remoteConfig.init();
 
 sensorSimulator.start(1500);
 
+// ========== NLEcloud IoT 真/假数据双模式 ==========
+(async () => {
+  const ok = await nleAdapter.login();
+  const badge = document.getElementById('data-source');
+  if (ok) {
+    nleAdapter.onData = (data) => { sensorSimulator.inject(data); };
+    nleAdapter.onActuators = (act) => {
+      if (act.sss && dashboard.isLightOn !== (act.sss.value > 0)) {
+        act.sss.value > 0
+          ? document.getElementById('btn-light-on')?.click()
+          : document.getElementById('btn-light-off')?.click();
+      }
+      if (act.ssss && dashboard.isFanOn !== (act.ssss.value > 0)) {
+        act.ssss.value > 0
+          ? document.getElementById('btn-fan-on')?.click()
+          : document.getElementById('btn-fan-off')?.click();
+      }
+    };
+    nleAdapter.startPolling(10000);
+    // 首次拉取后更新徽章
+    setTimeout(() => {
+      if (badge) {
+        badge.textContent = nleAdapter.isOnline ? '🟢 NLEcloud 在线' : '🟡 NLEcloud (缓存)';
+        badge.className = 'data-badge ' + (nleAdapter.isOnline ? 'live' : 'sim');
+      }
+    }, 2000);
+  } else if (badge) {
+    badge.textContent = '📡 模拟数据';
+    badge.className = 'data-badge sim';
+  }
+})();
+
 // ========== 管理面板 ==========
 
 const adminPanel = new AdminPanel();
 
+// ========== 巡线小车控制 ==========
+document.getElementById('btn-car-fwd')?.addEventListener('click', () => {
+  nleAdapter.carForward();
+  document.getElementById('btn-car-fwd').classList.add('active-btn');
+  document.getElementById('btn-car-back').classList.remove('active-btn');
+  document.getElementById('btn-car-stop').classList.remove('active-btn');
+});
+document.getElementById('btn-car-back')?.addEventListener('click', () => {
+  nleAdapter.carBackward();
+  document.getElementById('btn-car-back').classList.add('active-btn');
+  document.getElementById('btn-car-fwd').classList.remove('active-btn');
+  document.getElementById('btn-car-stop').classList.remove('active-btn');
+});
+document.getElementById('btn-car-stop')?.addEventListener('click', () => {
+  nleAdapter.carStop();
+  document.getElementById('btn-car-fwd').classList.remove('active-btn');
+  document.getElementById('btn-car-back').classList.remove('active-btn');
+  document.getElementById('btn-car-stop').classList.add('active-btn');
+});
+
 // ========== 动画循环 ==========
 
 const clock = new THREE.Clock();
+let frameCount = 0, lastFpsTime = 0, lastChartTime = 0;
 
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
+  const now = performance.now();
 
   controls.update();
 
@@ -224,15 +280,29 @@ function animate() {
   // 自动巡检
   railPollinator.updateAutoMode(delta);
 
-  // 日光微调（模拟云层变化）
-  sunLight.intensity = 3 + Math.sin(Date.now() * 0.0001) * 0.5;
-
-  // 风扇旋转动画（受 fanOn 标志控制）
+  // 风扇旋转动画
   scene.traverse((child) => {
     if (child.userData?.type === 'fan_blade' && child.userData.fanOn !== false) {
       child.rotation.z += delta * 15;
     }
   });
+
+  // FPS 计数
+  frameCount++;
+  if (now - lastFpsTime >= 1000) {
+    const fps = Math.round(frameCount / ((now - lastFpsTime) / 1000));
+    document.getElementById('fps').textContent = fps;
+    frameCount = 0;
+    lastFpsTime = now;
+  }
+
+  // 图表更新（每 2 秒）
+  if (now - lastChartTime > 2000) {
+    const data = sensorSimulator.getAll();
+    charts.update(data);
+    charts.checkAlerts(data);
+    lastChartTime = now;
+  }
 
   renderer.render(scene, camera);
 }
@@ -308,5 +378,5 @@ window.__app = {
   scene, camera, controls, renderer,
   greenhouse, tomatoGroup, railPollinator,
   interaction, dashboard, adminPanel,
-  sensorSimulator, remoteConfig,
+  sensorSimulator, remoteConfig, nleAdapter,
 };
