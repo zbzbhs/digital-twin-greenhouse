@@ -222,6 +222,13 @@ sensorSimulator.start(1500);
           ? document.getElementById('btn-fan-on')?.click()
           : document.getElementById('btn-fan-off')?.click();
       }
+      // qj(前进)/ht(后退) → 滑轨移动
+      if (act.qj && act.qj.value > 0) {
+        railPollinator.setPosition(Math.min(1, railPollinator.currentPosition + 0.1));
+      }
+      if (act.ht && act.ht.value > 0) {
+        railPollinator.setPosition(Math.max(0, railPollinator.currentPosition - 0.1));
+      }
     };
     nleAdapter.startPolling(10000);
     // 首次拉取后更新徽章
@@ -240,26 +247,6 @@ sensorSimulator.start(1500);
 // ========== 管理面板 ==========
 
 const adminPanel = new AdminPanel();
-
-// ========== 巡线小车控制 ==========
-document.getElementById('btn-car-fwd')?.addEventListener('click', () => {
-  nleAdapter.carForward();
-  document.getElementById('btn-car-fwd').classList.add('active-btn');
-  document.getElementById('btn-car-back').classList.remove('active-btn');
-  document.getElementById('btn-car-stop').classList.remove('active-btn');
-});
-document.getElementById('btn-car-back')?.addEventListener('click', () => {
-  nleAdapter.carBackward();
-  document.getElementById('btn-car-back').classList.add('active-btn');
-  document.getElementById('btn-car-fwd').classList.remove('active-btn');
-  document.getElementById('btn-car-stop').classList.remove('active-btn');
-});
-document.getElementById('btn-car-stop')?.addEventListener('click', () => {
-  nleAdapter.carStop();
-  document.getElementById('btn-car-fwd').classList.remove('active-btn');
-  document.getElementById('btn-car-back').classList.remove('active-btn');
-  document.getElementById('btn-car-stop').classList.add('active-btn');
-});
 
 // ========== 动画循环 ==========
 
