@@ -250,6 +250,16 @@ const adminPanel = new AdminPanel();
 
 // ========== 动画循环 ==========
 
+// 滑轨前进/后退按钮
+document.getElementById('btn-rail-fwd')?.addEventListener('click', () => {
+  railPollinator.setPosition(Math.min(1, railPollinator.currentPosition + 0.1));
+  nleAdapter.carForward();
+});
+document.getElementById('btn-rail-back')?.addEventListener('click', () => {
+  railPollinator.setPosition(Math.max(0, railPollinator.currentPosition - 0.1));
+  nleAdapter.carBackward();
+});
+
 const clock = new THREE.Clock();
 let frameCount = 0, lastFpsTime = 0, lastChartTime = 0;
 
